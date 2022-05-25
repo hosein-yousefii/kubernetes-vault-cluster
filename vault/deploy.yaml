@@ -1,0 +1,104 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: vault
+  labels:
+    app.kubernetes.io/name: vault
+    app.kubernetes.io/creator: hossein-yousefi
+    app.kubernetes.io/stack: vault-cluster
+spec:
+  selector:
+    matchLabels:
+    app.kubernetes.io/name: vault
+    app.kubernetes.io/creator: hossein-yousefi
+    app.kubernetes.io/stack: vault-cluster
+  serviceName: "vault-server"
+  replicas: 3
+  template:
+    metadata:
+      labels:
+    app.kubernetes.io/name: vault
+    app.kubernetes.io/creator: hossein-yousefi
+    app.kubernetes.io/stack: vault-cluster
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+                - key: "app.kubernetes.io/name"
+                  operator: In
+                  values:
+                  - vault
+            topologyKey: "kubernetes.io/hostname"
+
+      volumes:
+        - name: vault-config
+          configMap:
+            name: vault-config
+
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: vault
+        image: vault:latest
+        ports:
+          - name: http
+            containerPort: 8200
+
+          - name: https-internal
+            containerPort: 8201
+
+          - name: int
+            containerPort: 8202
+
+        env:
+          - name: POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+
+          - name: VAULT_RAFT_NODE_ID
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+
+          - name: HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+
+          - name: SKIP_CHOWN
+            value: "true"
+
+          - name: SKIP_SETCAP
+            value: "true"
+
+          - name: VAULT_ADDR
+            value: "http://127.0.0.1:8200"
+
+          - name: VAULT_API_ADDR
+            value: "http://$(POD_IP):8200"
+
+          - name: VAULT_CLUSTER_ADDR
+            value: "http://$(POD_IP):8201"
+
+        args:
+          - "server"
+          - "-config=/vault/myconf/config.hcl"
+
+        volumeMounts:
+        - name: vault-config
+          mountPath: /vault/myconf/
+
+        - name: vault-data
+          mountPath: /vault/data/
+
+  volumeClaimTemplates:
+  - metadata:
+      name: vault-data
+    spec:
+      storageClassName: "glusterfs"
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi

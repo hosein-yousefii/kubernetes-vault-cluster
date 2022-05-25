@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: consul
+  labels:
+    app.kubernetes.io/name: consul
+    app.kubernetes.io/creator: hossein-yousefi
+    app.kubernetes.io/stack: vault-cluster
+spec:
+  selector:
+    matchLabels:
+    app.kubernetes.io/name: consul
+    app.kubernetes.io/creator: hossein-yousefi
+    app.kubernetes.io/stack: vault-cluster
+  serviceName: "consul-server"
+  replicas: 3
+  template:
+    metadata:
+      labels:
+    app.kubernetes.io/name: consul
+    app.kubernetes.io/creator: hossein-yousefi
+    app.kubernetes.io/stack: vault-cluster
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+                - key: "app.kubernetes.io/name"
+                  operator: In
+                  values:
+                  - consul
+            topologyKey: "kubernetes.io/hostname"
+      volumes:
+        - name: consul-config
+          configMap:
+            name: consul-config
+
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: consul
+        image: consul:latest
+        ports:
+          - name: http
+            containerPort: 8500
+
+          - name: https
+            containerPort: 8501
+
+          - name: serflan-tcp
+            containerPort: 8301
+            protocol: "TCP"
+
+          - name: serflan-udp
+            containerPort: 8301
+            protocol: "UDP"
+
+          - name: serfwan-tcp
+            containerPort: 8302
+            protocol: "TCP"
+
+          - name: serfwan-udp
+            containerPort: 8302
+            protocol: "UDP"
+
+          - name: server
+            containerPort: 8300
+
+          - name: dns-tcp
+            containerPort: 8600
+            protocol: "TCP"
+
+          - name: dns-udp
+            containerPort: 8600
+            protocol: "UDP"
+
+        args:
+          - "agent"
+          - "-config-file=/consul/myconf/consul.json"
+
+        volumeMounts:
+        - name: consul-config
+          mountPath: /consul/myconf/
+
+        - name: consul-data
+          mountPath: /consul/data/
+
+  volumeClaimTemplates:
+  - metadata:
+      name: consul-data
+    spec:
+      storageClassName: "glusterfs"
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi

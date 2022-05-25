@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: consul-config
+  labels:
+    app.kubernetes.io/name: consul
+    app.kubernetes.io/creator: hossein-yousefi
+    app.kubernetes.io/stack: vault-cluster
+data:
+  consul.json: |
+    {
+      "server": true,
+      "datacenter": "dc1",
+      "data_dir": "/consul/data/",
+      "bind_addr": "0.0.0.0",
+      "client_addr": "0.0.0.0",
+      "ui": true,
+      "retry_join": ["consul"],
+      "bootstrap_expect": 3,
+      "log_level": "DEBUG",
+      "acl_enforce_version_8": false
+    }
+
