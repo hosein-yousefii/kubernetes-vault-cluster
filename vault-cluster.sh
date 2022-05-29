@@ -51,23 +51,23 @@ echo
 echo "initializing vault cluster..."
 
 
-kubectl exec --stdin --tty vault-0 -- vault operator init > vault-keys.txt
+kubectl exec --stdin --tty vault-0 -- vault operator init -format=yaml> vault-keys.txt
 
 echo
 echo "Unsealing vault cluster..."
 
 for i in `seq 0 $REPLICA`
 do
-	unseal_key_1="kubectl exec --stdin --tty vault-${i} -- vault operator unseal -tls-skip-verify $(head -5 vault-keys.txt |awk -F: '{print $2}'|sed 's/\ //g'|head -1| tail -1)"
-	unseal_key_2="kubectl exec --stdin --tty vault-${i} -- vault operator unseal -tls-skip-verify $(head -5 vault-keys.txt |awk -F: '{print $2}'|sed 's/\ //g'|head -2| tail -1)"
-	unseal_key_3="kubectl exec --stdin --tty vault-${i} -- vault operator unseal -tls-skip-verify $(head -5 vault-keys.txt |awk -F: '{print $2}'|sed 's/\ //g'|head -3| tail -1)"
+	unseal_key_1="kubectl exec --stdin --tty vault-${i} -- vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-keys.txt |head -2|tail -1|sed 's/- //g')"
+	unseal_key_2="kubectl exec --stdin --tty vault-${i} -- vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-keys.txt |head -3|tail -1|sed 's/- //g')"
+	unseal_key_3="kubectl exec --stdin --tty vault-${i} -- vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-keys.txt |head -4|tail -1|sed 's/- //g')"
 
 	$unseal_key_1
 	$unseal_key_2
 	$unseal_key_3
 done
 
-ROOT_TOKEN=$(grep "Root Token" vault-keys.txt |awk -F: '{print $2}'|sed 's/\ //g')
+ROOT_TOKEN=$(grep root_token vault-keys.txt |awk -F: '{print $2}'|sed 's/ //g')
 
 echo
 echo "Vault cluster is ready to use."
@@ -75,5 +75,3 @@ echo "Please, write down the unseal keys and delete the 'vault-keys.txt' file"
 echo "This is your root token: ${ROOT_TOKEN}"
 echo "Enjoy the rest of the day!"
 echo
-
-
