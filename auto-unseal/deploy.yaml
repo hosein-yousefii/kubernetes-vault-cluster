@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vault-auto-unseal
+  labels:
+    app.kubernetes.io/name: vault-auto-unseal
+    app.kubernetes.io/creator: hossein-yousefi
+    app.kubernetes.io/stack: vault-auto-unseal-cluster
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vault-auto-unseal
+      app.kubernetes.io/creator: hossein-yousefi
+      app.kubernetes.io/stack: vault-auto-unseal-cluster
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vault-auto-unseal
+        app.kubernetes.io/creator: hossein-yousefi
+        app.kubernetes.io/stack: vault-auto-unseal-cluster
+    spec:
+      containers:
+      - name: vault-auto-unseal
+        image: vault:latest
+        ports:
+          - name: http
+            containerPort: 8200
+
+          - name: https-internal
+            containerPort: 8201
+
+          - name: int
+            containerPort: 8202
+            
+        env:
+          - name: POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+
+          - name: VAULT_RAFT_NODE_ID
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+
+          - name: HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+
+          - name: SKIP_CHOWN
+            value: "true"
+
+          - name: SKIP_SETCAP
+            value: "true"
+
+          - name: VAULT_ADDR
+            value: "http://127.0.0.1:8200"
+
+          - name: VAULT_API_ADDR
+            value: "http://$(POD_IP):8200"
+
+          - name: VAULT_CLUSTER_ADDR
+            value: "http://$(POD_IP):8201"
+
+        args:
+          - "server"
+          - "-config=/vault/myconf/config.hcl"
+
+        volumeMounts:
+        - name: vault-auto-unseal-config
+          mountPath: /vault/myconf/
+          subPath: config.hcl
+
+        - name: vault-auto-unseal-config
+          mountPath: /vault/myconf/
+          subPath: autounseal.hcl
+          
+        - name: vault-auto-unseal-data
+          mountPath: /vault/data/
+          
+      volumes:
+        - name: vault-auto-unseal-config
+          configMap:
+            name: vault-auto-unseal-config
+            
+        - name: vault-auto-unseal-data
+          persistentVolumeClaim:
+            claimName: vault-au-pv-claim         
+
