@@ -9,17 +9,17 @@ metadata:
 spec:
   selector:
     matchLabels:
-    app.kubernetes.io/name: consul
-    app.kubernetes.io/creator: hossein-yousefi
-    app.kubernetes.io/stack: vault-cluster
+      app.kubernetes.io/name: consul
+      app.kubernetes.io/creator: hossein-yousefi
+      app.kubernetes.io/stack: vault-cluster
   serviceName: "consul-server"
   replicas: 3
   template:
     metadata:
       labels:
-    app.kubernetes.io/name: consul
-    app.kubernetes.io/creator: hossein-yousefi
-    app.kubernetes.io/stack: vault-cluster
+        app.kubernetes.io/name: consul
+        app.kubernetes.io/creator: hossein-yousefi
+        app.kubernetes.io/stack: vault-cluster
     spec:
       affinity:
         podAntiAffinity:
@@ -88,6 +88,10 @@ spec:
   volumeClaimTemplates:
   - metadata:
       name: consul-data
+      labels:
+        app.kubernetes.io/name: consul
+        app.kubernetes.io/creator: hossein-yousefi
+        app.kubernetes.io/stack: vault-cluster      
     spec:
       storageClassName: "glusterfs"
       accessModes: [ "ReadWriteOnce" ]

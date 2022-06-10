@@ -17,7 +17,7 @@ echo
 echo "waiting for the Vault transit (auto-unseal) pod (it might take a few minutes)."
 
 while [[ ! $(kubectl get po --field-selector status.phase=Running|grep vault-auto-unseal) ]]
-do 
+do
 	echo -ne .
 	sleep 2s
 	
@@ -81,30 +81,31 @@ echo "pod's vault are in running state."
 echo
 echo "initializing Vault transit server..."
 
-kubectl exec --stdin --tty vault-auto-unseal -- vault operator init -format=yaml > vault-auto-unseal-keys.txt
+TRANSIT_SERVER_NAME=$(kubectl get deployments.app vault-auto-unseal -o custom-columns=:.status.conditions[1].message|awk '{print $2}'|sed 's/"//g')
+kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- vault operator init -format=yaml > vault-auto-unseal-keys.txt
 
 echo
 echo "Unsealing Vault transit server..."
 
-kubectl exec --stdin --tty vault-auto-unseal -- vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-auto-unseal-keys.txt |head -2|tail -1|sed 's/- //g')
-kubectl exec --stdin --tty vault-auto-unseal -- vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-auto-unseal-keys.txt |head -3|tail -1|sed 's/- //g')
-kubectl exec --stdin --tty vault-auto-unseal -- vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-auto-unseal-keys.txt |head -4|tail -1|sed 's/- //g')
+kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-auto-unseal-keys.txt |head -2|tail -1|sed 's/- //g')
+kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-auto-unseal-keys.txt |head -3|tail -1|sed 's/- //g')
+kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-auto-unseal-keys.txt |head -4|tail -1|sed 's/- //g')
 
 VAULT_AUTO_UNSEAL_ROOT_TOKEN=$(grep root_token vault-auto-unseal-keys.txt |awk -F: '{print $2}'|sed 's/ //g')
 
-kubectl exec --stdin --tty vault-auto-unseal -- vault login -tls-skip-verify ${VAULT_AUTO_UNSEAL_ROOT_TOKEN}
+kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- vault login -tls-skip-verify ${VAULT_AUTO_UNSEAL_ROOT_TOKEN}
 
-kubectl exec --stdin --tty vault-auto-unseal -- vault secrets enable transit
+kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- vault secrets enable transit
 
-kubectl exec --stdin --tty vault-auto-unseal -- vault write -f transit/keys/autounseal
+kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- vault write -f transit/keys/autounseal
 
-kubectl exec --stdin --tty vault-auto-unseal -- vault policy write autounseal /vault/myconf/autounseal.hcl
+kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- vault policy write autounseal /vault/myconf/autounseal.hcl
 
-kubectl exec --stdin --tty vault-auto-unseal -- vault token create -policy="autounseal" -wrap-ttl=12000 -format=yaml > .vault-auto-unseal-token.txt
+kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- vault token create -policy="autounseal" -wrap-ttl=12000 -format=yaml > .vault-auto-unseal-token.txt
 
 VAULT_AUTO_UNSEAL_TOKEN=$(grep token: .vault-auto-unseal-token.txt|awk '{print $2}')
 
-kubectl exec --stdin --tty vault-auto-unseal -- VAULT_TOKEN=${VAULT_AUTO_UNSEAL_TOKEN} vault unwrap
+kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- VAULT_TOKEN=${VAULT_AUTO_UNSEAL_TOKEN} vault unwrap
 
 
 ################################################################## CONFIGURE VAULT CLUSTER
@@ -130,13 +131,13 @@ data:
       path    = "vault/"
     }
     disable_mlock = true
-    
-	seal "transit" {
-	  address = "http://vault-auto-unseal:8200"
-	  token = "${VAULT_AUTO_UNSEAL_TOKEN}"
-	  disable_renewal = "false"
-	  key_name = "auto-unseal"	
-	  mount_path = "transit"
+
+    seal "transit" {
+      address = "http://vault-auto-unseal:8200"
+      token = "${VAULT_AUTO_UNSEAL_TOKEN}"
+      disable_renewal = "false"
+      key_name = "auto-unseal"
+      mount_path = "transit"
 }
 EOF
 

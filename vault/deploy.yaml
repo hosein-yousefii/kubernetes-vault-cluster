@@ -9,17 +9,17 @@ metadata:
 spec:
   selector:
     matchLabels:
-    app.kubernetes.io/name: vault
-    app.kubernetes.io/creator: hossein-yousefi
-    app.kubernetes.io/stack: vault-cluster
+      app.kubernetes.io/name: vault
+      app.kubernetes.io/creator: hossein-yousefi
+      app.kubernetes.io/stack: vault-cluster
   serviceName: "vault-server"
   replicas: 3
   template:
     metadata:
       labels:
-    app.kubernetes.io/name: vault
-    app.kubernetes.io/creator: hossein-yousefi
-    app.kubernetes.io/stack: vault-cluster
+        app.kubernetes.io/name: vault
+        app.kubernetes.io/creator: hossein-yousefi
+        app.kubernetes.io/stack: vault-cluster
     spec:
       affinity:
         podAntiAffinity:
