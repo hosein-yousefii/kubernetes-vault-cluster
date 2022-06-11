@@ -2,30 +2,6 @@
 # Implement Vault cluster integrated with consul cluster in kubernetes.
 # written by Hosein Yousefi <yousefi.hosein.o@gmail.com>
 
-
-################################################################## VAULT TRANSIT FOR AUTO UNSEALING
-echo
-echo "Deploying Vault transit server ..."
-echo
-
-kubectl apply -f auto-unseal/pvc.yaml
-kubectl apply -f auto-unseal/cm.yaml
-kubectl apply -f auto-unseal/svc.yaml
-kubectl apply -f auto-unseal/deploy.yaml
-
-echo
-echo "waiting for the Vault transit (auto-unseal) pod (it might take a few minutes)."
-
-while [[ ! $(kubectl get po --field-selector status.phase=Running|grep vault-auto-unseal) ]]
-do
-	echo -ne .
-	sleep 2s
-	
-done
-
-echo "Vault transit server successfuly deployed."
-echo
-
 ################################################################## CONSUL CLUSTER
 echo
 echo "Deploying Consul cluster ..."
@@ -51,6 +27,28 @@ done
 echo
 echo "Consul cluster are in running state."
 
+################################################################## VAULT TRANSIT FOR AUTO UNSEALING
+echo
+echo "Deploying Vault transit server ..."
+echo
+
+kubectl apply -f auto-unseal/pvc.yaml
+kubectl apply -f auto-unseal/cm.yaml
+kubectl apply -f auto-unseal/svc.yaml
+kubectl apply -f auto-unseal/deploy.yaml
+
+echo
+echo "waiting for the Vault transit (auto-unseal) pod (it might take a few minutes)."
+
+while [[ ! $(kubectl get po --field-selector status.phase=Running|grep vault-auto-unseal) ]]
+do
+	echo -ne .
+	sleep 2s
+	
+done
+
+echo "Vault transit server successfuly deployed."
+echo
 
 ################################################################## VAULT CLUSTER
 echo

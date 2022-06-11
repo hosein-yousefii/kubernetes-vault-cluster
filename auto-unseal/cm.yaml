@@ -13,9 +13,9 @@ data:
     }
     disable_mlock = true
     raw_storage_endpoint     = true
-    storage "raft" {
-       path = "/opt/data/raft"
-       node_id = "auto-unseal-node"
+    storage "consul" {
+      address = "consul:8500"
+      path    = "vault-auto-unseal/"
     }
 
   autounseal.hcl: |
