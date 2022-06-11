@@ -75,11 +75,11 @@ spec:
 
         volumeMounts:
         - name: vault-auto-unseal-config
-          mountPath: /vault/myconf/
+          mountPath: /vault/myconf/config.hcl
           subPath: "config.hcl"
           
         - name: vault-auto-unseal-config
-          mountPath: /vault/unseal/
+          mountPath: /vault/unseal/autounseal.hcl
           subPath: "autounseal.hcl"
           
         - name: vault-auto-unseal-data
