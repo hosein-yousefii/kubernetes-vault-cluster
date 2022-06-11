@@ -127,11 +127,11 @@ data:
   config.hcl: |
     listener "tcp" {
       tls_disable = 1
-    }
+     }
     storage "consul" {
       address = "consul:8500"
       path    = "vault/"
-    }
+     }
     disable_mlock = true
     seal "transit" {
       address = "http://vault-auto-unseal:8200"
@@ -139,7 +139,7 @@ data:
       disable_renewal = "false"
       key_name = "auto-unseal"
       mount_path = "transit/"
-    }
+     }
 
 EOF
 
