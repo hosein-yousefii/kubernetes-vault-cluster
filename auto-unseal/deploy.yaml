@@ -85,6 +85,9 @@ spec:
         - name: vault-auto-unseal-data
           mountPath: /vault/data/
           
+        - name: vault-raft-db
+          mountPath: /vault/raft-db/
+          
       volumes:
         - name: vault-auto-unseal-config
           configMap:
@@ -99,3 +102,11 @@ spec:
           persistentVolumeClaim:
             claimName: vault-au-pv-claim         
 
+        - name: vault-raft-db
+          persistentVolumeClaim:
+            claimName: vault-au-raft-db-claim
+            
+            
+            
+            
+            
