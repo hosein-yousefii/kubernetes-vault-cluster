@@ -86,7 +86,7 @@ spec:
           mountPath: /vault/data/
           
         - name: vault-raft-db
-          mountPath: /vault/raft-db/
+          mountPath: /vault/file/
           
       volumes:
         - name: vault-auto-unseal-config
