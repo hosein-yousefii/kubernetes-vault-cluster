@@ -93,6 +93,8 @@ kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- vault operator unseal -tls-sk
 
 VAULT_AUTO_UNSEAL_ROOT_TOKEN=$(grep root_token vault-auto-unseal-keys.txt |awk -F: '{print $2}'|sed 's/ //g')
 
+sleep 3s
+
 kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- vault login -tls-skip-verify ${VAULT_AUTO_UNSEAL_ROOT_TOKEN}
 
 kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- vault secrets enable transit
