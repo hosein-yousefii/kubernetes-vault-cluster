@@ -136,7 +136,7 @@ data:
     disable_mlock = true
     seal "transit" {
       address = "http://vault-auto-unseal:8200"
-      token = ${VAULT_AUTO_UNSEAL_TOKEN}
+      token = "${VAULT_AUTO_UNSEAL_TOKEN}"
       disable_renewal = "false"
       key_name = "auto-unseal"
       mount_path = "transit/"
@@ -162,22 +162,25 @@ do
 	
 done
 
-kubectl exec --stdin --tty vault-0 vault operator init -format=yaml > vault-keys.txt
+kubectl exec --stdin --tty vault-0 -- vault operator init -format=yaml > vault-keys.txt
 
 ROOT_TOKEN=$(grep root_token vault-keys.txt |awk -F: '{print $2}'|sed 's/ //g')
+
+
+
+for i in `seq 0 $REPLICA`
+do
+	unseal_key_1="kubectl exec --stdin --tty vault-${i} -- vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-keys.txt |head -2|tail -1|sed 's/- //g')"
+	unseal_key_2="kubectl exec --stdin --tty vault-${i} -- vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-keys.txt |head -3|tail -1|sed 's/- //g')"
+	unseal_key_3="kubectl exec --stdin --tty vault-${i} -- vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-keys.txt |head -4|tail -1|sed 's/- //g')"
+
+	$unseal_key_1
+	$unseal_key_2
+	$unseal_key_3
+done
+
 
 echo
 echo "Vault transit server is ready to use."
 echo "Please, write down the unseal keys and delete the 'vault-auto-unseal-keys.txt' file"
 echo "This is Vault transit server root token: ${ROOT_TOKEN}"
-#
-#for i in `seq 0 $REPLICA`
-#do
-#	unseal_key_1="kubectl exec --stdin --tty vault-${i} -- vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-keys.txt |head -2|tail -1|sed 's/- //g')"
-#	unseal_key_2="kubectl exec --stdin --tty vault-${i} -- vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-keys.txt |head -3|tail -1|sed 's/- //g')"
-#	unseal_key_3="kubectl exec --stdin --tty vault-${i} -- vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-keys.txt |head -4|tail -1|sed 's/- //g')"
-#
-#	$unseal_key_1
-#	$unseal_key_2
-#	$unseal_key_3
-#done
