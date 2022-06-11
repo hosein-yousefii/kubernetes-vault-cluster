@@ -107,8 +107,9 @@ kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- vault token create -policy="a
 
 VAULT_AUTO_UNSEAL_TOKEN=$(grep token: .vault-auto-unseal-token.txt|awk '{print $2}')
 
-kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- VAULT_TOKEN=${VAULT_AUTO_UNSEAL_TOKEN} vault unwrap
+kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- export VAULT_TOKEN=${VAULT_AUTO_UNSEAL_TOKEN} vault unwrap
 
+kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- vault unwrap
 
 ################################################################## CONFIGURE VAULT CLUSTER
 echo
@@ -135,7 +136,7 @@ data:
     disable_mlock = true
     seal "transit" {
       address = "http://vault-auto-unseal:8200"
-      token = "${VAULT_AUTO_UNSEAL_TOKEN}"
+      token = ${VAULT_AUTO_UNSEAL_TOKEN}
       disable_renewal = "false"
       key_name = "auto-unseal"
       mount_path = "transit/"
