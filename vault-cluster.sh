@@ -105,11 +105,11 @@ kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- vault policy write autounseal
 
 kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- vault token create -policy="autounseal" -wrap-ttl=12000 -format=yaml > .vault-auto-unseal-token.txt
 
-VAULT_AUTO_UNSEAL_TOKEN=$(grep token: .vault-auto-unseal-token.txt|awk '{print $2}')
+VAULT_AUTO_UNSEAL_TOKEN=$(grep token: .vault-auto-unseal-token.txt|awk '{print $2}'|tr -d '\r')
 
-kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- export VAULT_TOKEN=${VAULT_AUTO_UNSEAL_TOKEN} vault unwrap
+kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- env VAULT_TOKEN=${VAULT_AUTO_UNSEAL_TOKEN} vault unwrap
 
-kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- vault unwrap
+
 
 ################################################################## CONFIGURE VAULT CLUSTER
 echo
