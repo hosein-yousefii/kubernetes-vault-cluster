@@ -16,20 +16,3 @@ spec:
   storageClassName: glusterfs      
 
 
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: vault-au-raft-db-claim
-  labels:
-    app.kubernetes.io/name: vault-auto-unseal
-    app.kubernetes.io/creator: hossein-yousefi
-    app.kubernetes.io/stack: vault-auto-unseal-cluster
-
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 400M
-  storageClassName: glusterfs    

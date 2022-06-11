@@ -13,10 +13,6 @@ data:
     }
     disable_mlock = true
     raw_storage_endpoint     = true
-    storage "raft" {
-       path = "/vault/file/"
-       node_id = "auto-unseal-node"
-    }
 
   autounseal.hcl: |
     path "transit/encrypt/autounseal" {
