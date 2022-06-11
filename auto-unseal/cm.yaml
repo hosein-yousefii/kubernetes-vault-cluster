@@ -14,7 +14,7 @@ data:
     disable_mlock = true
     raw_storage_endpoint     = true
     storage "raft" {
-       path = "/var/vault/data"
+       path = "/vault/data"
        node_id = "auto-unseal-node"
     }
 
