@@ -135,7 +135,7 @@ data:
     disable_mlock = true
     seal "transit" {
       address = "http://vault-auto-unseal:8200"
-      token = ${VAULT_AUTO_UNSEAL_TOKEN}
+      token = "${VAULT_AUTO_UNSEAL_TOKEN}"
       disable_renewal = "false"
       key_name = "auto-unseal"
       mount_path = "transit/"
