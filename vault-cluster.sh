@@ -101,7 +101,7 @@ kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- vault secrets enable transit
 
 kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- vault write -f transit/keys/autounseal
 
-kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- vault policy write autounseal /vault/myconf/autounseal.hcl
+kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- vault policy write autounseal /vault/unseal/autounseal.hcl
 
 kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- vault token create -policy="autounseal" -wrap-ttl=12000 -format=yaml > .vault-auto-unseal-token.txt
 

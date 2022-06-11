@@ -76,6 +76,11 @@ spec:
         volumeMounts:
         - name: vault-auto-unseal-config
           mountPath: /vault/myconf/
+          subPath: "config.hcl"
+          
+        - name: vault-auto-unseal-config
+          mountPath: /vault/unseal/
+          subPath: "autounseal.hcl"
           
         - name: vault-auto-unseal-data
           mountPath: /vault/data/
@@ -84,6 +89,11 @@ spec:
         - name: vault-auto-unseal-config
           configMap:
             name: vault-auto-unseal-config
+            items:
+            - key: "autounseal.hcl"
+              path: "autounseal.hcl"
+            - key: "config.hcl"
+              path: "config.hcl"            
             
         - name: vault-auto-unseal-data
           persistentVolumeClaim:
