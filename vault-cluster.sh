@@ -81,7 +81,9 @@ echo "pod's vault are in running state."
 echo
 echo "initializing Vault transit server..."
 
-TRANSIT_SERVER_NAME=$(kubectl get deployments.app vault-auto-unseal -o custom-columns=:.status.conditions[1].message|awk '{print $2}'|sed 's/"//g')
+REPLICASET_TRANSIT_SERVER_NAME=$(kubectl get deployments.apps vault-auto-unseal -o custom-columns=:.status.conditions[1].message|awk '{print $2}'|sed 's/"//g')
+TRANSIT_SERVER_NAME=$(kubectl describe replicasets.apps $REPLICASET_TRANSIT_SERVER_NAME |tail -1|awk '{print $7}')
+
 kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- vault operator init -format=yaml > vault-auto-unseal-keys.txt
 
 echo
@@ -124,21 +126,20 @@ metadata:
 data:
   config.hcl: |
     listener "tcp" {
-    tls_disable = 1
+      tls_disable = 1
     }
     storage "consul" {
       address = "consul:8500"
       path    = "vault/"
     }
     disable_mlock = true
-
     seal "transit" {
       address = "http://vault-auto-unseal:8200"
       token = "${VAULT_AUTO_UNSEAL_TOKEN}"
       disable_renewal = "false"
       key_name = "auto-unseal"
       mount_path = "transit"
-}
+    }
 EOF
 
 kubectl apply -f vault/cm.yaml
