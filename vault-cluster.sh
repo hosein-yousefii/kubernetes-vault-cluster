@@ -2,7 +2,7 @@
 # Implement Vault cluster integrated with consul cluster in kubernetes.
 # written by Hosein Yousefi <yousefi.hosein.o@gmail.com>
 
-################################################################## CONSUL CLUSTER
+################################################################## DEPLOY CONSUL CLUSTER
 echo
 echo "Deploying Consul cluster ..."
 echo
@@ -27,7 +27,7 @@ done
 echo
 echo "Consul cluster are in running state."
 
-################################################################## VAULT TRANSIT FOR AUTO UNSEALING
+################################################################## DEPLOY VAULT TRANSIT FOR AUTO UNSEALING
 echo
 echo "Deploying Vault transit server ..."
 echo
@@ -50,7 +50,7 @@ done
 echo "Vault transit server successfuly deployed."
 echo
 
-################################################################## VAULT CLUSTER
+################################################################## DEPLOY VAULT CLUSTER
 echo
 echo "Deploying Vault cluster..."
 
@@ -148,14 +148,14 @@ kubectl apply -f vault/cm.yaml
 
 kubectl rollout restart statefulsets vault
 
+sleep 7s
 
-
-##################################################################
+################################################################## Configure Vault cluster
 echo
 echo "initializing vault cluster..."
 
-#############
-while [[ ! $(kubectl get po --field-selector status.phase=Running|grep vault-0) ]]
+
+while [[ ! $(kubectl get po --field-selector status.phase=Running|grep vault-0) ]] || [[ ! $(kubectl get po --field-selector status.phase=Running|grep vault-1) ]] || [[ ! $(kubectl get po --field-selector status.phase=Running|grep vault-2) ]]
 do 
 	echo -ne .
 	sleep 5s
