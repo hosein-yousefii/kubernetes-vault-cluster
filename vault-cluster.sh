@@ -111,56 +111,58 @@ kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- env VAULT_TOKEN=${VAULT_AUTO_
 
 
 
-################################################################## CONFIGURE VAULT CLUSTER
-echo
-echo "Configuring Vault cluster..."
-
-tee vault/cm.yaml << EOF
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: vault-config
-  labels:
-    app.kubernetes.io/name: vault
-    app.kubernetes.io/creator: hossein-yousefi
-    app.kubernetes.io/stack: vault-cluster
-data:
-  config.hcl: |
-    listener "tcp" {
-      tls_disable = 1
-     }
-    storage "consul" {
-      address = "consul:8500"
-      path    = "vault/"
-     }
-    disable_mlock = true
-    seal "transit" {
-      address = "http://vault-auto-unseal:8200"
-      token = "${VAULT_AUTO_UNSEAL_TOKEN}"
-      disable_renewal = "false"
-      key_name = "auto-unseal"
-      mount_path = "transit/"
-     }
-
-EOF
-
-kubectl apply -f vault/cm.yaml
-
-kubectl rollout restart statefulsets vault
-
-sleep 7s
-
-################################################################## Configure Vault cluster
-echo
-echo "initializing vault cluster..."
-
-
-while [[ ! $(kubectl get po --field-selector status.phase=Running|grep vault-0) ]] || [[ ! $(kubectl get po --field-selector status.phase=Running|grep vault-1) ]] || [[ ! $(kubectl get po --field-selector status.phase=Running|grep vault-2) ]]
-do 
-	echo -ne .
-	sleep 5s
-	
-done
+################################################################### CONFIGURE VAULT CLUSTER
+#echo
+#echo "Configuring Vault cluster..."
+#
+#tee vault/cm.yaml << EOF
+#apiVersion: v1
+#kind: ConfigMap
+#metadata:
+#  name: vault-config
+#  labels:
+#    app.kubernetes.io/name: vault
+#    app.kubernetes.io/creator: hossein-yousefi
+#    app.kubernetes.io/stack: vault-cluster
+#data:
+#  config.hcl: |
+#    listener "tcp" {
+#      tls_disable = 1
+#      address          = "0.0.0.0:8200"
+#      cluster_address  = "0.0.0.0:8201"	  
+#     }
+#    storage "consul" {
+#      address = "consul:8500"
+#      path    = "vault/"
+#     }
+#    disable_mlock = true
+#    seal "transit" {
+#      address = "http://vault-auto-unseal:8200"
+#      token = "${VAULT_AUTO_UNSEAL_TOKEN}"
+#      disable_renewal = "false"
+#      key_name = "auto-unseal"
+#      mount_path = "transit/"
+#     }
+#
+#EOF
+#
+#kubectl apply -f vault/cm.yaml
+#
+#kubectl rollout restart statefulsets vault
+#
+#sleep 7s
+#
+################################################################### Configure Vault cluster
+#echo
+#echo "initializing vault cluster..."
+#
+#
+#while [[ ! $(kubectl get po --field-selector status.phase=Running|grep vault-0) ]] || [[ ! $(kubectl get po --field-selector status.phase=Running|grep vault-1) ]] || [[ ! $(kubectl get po --field-selector status.phase=Running|grep vault-2) ]]
+#do 
+#	echo -ne .
+#	sleep 5s
+#	
+#done
 
 #kubectl exec --stdin --tty vault-0 -- vault operator init -format=yaml > vault-keys.txt
 #
