@@ -111,46 +111,46 @@ echo $VAULT_AUTO_UNSEAL_TOKEN
 
 #VAULT_AUTO_UNSEAL_TOKEN=$(grep client_token: .vault-auto-unseal-token2.txt|awk '{print $2}'|tr -d '\r')
 
-################################################################## CONFIGURE VAULT CLUSTER
-echo
-echo "Configuring Vault cluster..."
-
-tee vault/cm.yaml << EOF
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: vault-config
-  labels:
-    app.kubernetes.io/name: vault
-    app.kubernetes.io/creator: hossein-yousefi
-    app.kubernetes.io/stack: vault-cluster
-data:
-  config.hcl: |
-    listener "tcp" {
-      tls_disable = 1
-      address          = "0.0.0.0:8200"
-      cluster_address  = "0.0.0.0:8201"	  
-     }
-    storage "consul" {
-      address = "consul:8500"
-      path    = "vault/"
-     }
-    disable_mlock = true
-    seal "transit" {
-      address = "http://vault-auto-unseal:8200"
-      token = "${VAULT_AUTO_UNSEAL_TOKEN}"
-      disable_renewal = "false"
-      key_name = "auto-unseal"
-      mount_path = "transit/"
-     }
-
-EOF
-
-kubectl apply -f vault/cm.yaml
-
-kubectl rollout restart statefulsets vault
-
-sleep 7s
+################################################################### CONFIGURE VAULT CLUSTER
+#echo
+#echo "Configuring Vault cluster..."
+#
+#tee vault/cm.yaml << EOF
+#apiVersion: v1
+#kind: ConfigMap
+#metadata:
+#  name: vault-config
+#  labels:
+#    app.kubernetes.io/name: vault
+#    app.kubernetes.io/creator: hossein-yousefi
+#    app.kubernetes.io/stack: vault-cluster
+#data:
+#  config.hcl: |
+#    listener "tcp" {
+#      tls_disable = 1
+#      address          = "0.0.0.0:8200"
+#      cluster_address  = "0.0.0.0:8201"	  
+#     }
+#    storage "consul" {
+#      address = "consul:8500"
+#      path    = "vault/"
+#     }
+#    disable_mlock = true
+#    seal "transit" {
+#      address = "http://vault-auto-unseal:8200"
+#      token = "${VAULT_AUTO_UNSEAL_TOKEN}"
+#      disable_renewal = "false"
+#      key_name = "auto-unseal"
+#      mount_path = "transit/"
+#     }
+#
+#EOF
+#
+#kubectl apply -f vault/cm.yaml
+#
+#kubectl rollout restart statefulsets vault
+#
+#sleep 7s
 
 ################################################################## Configure Vault cluster
 #echo
