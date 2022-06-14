@@ -150,27 +150,21 @@ kubectl apply -f vault/cm.yaml
 
 kubectl rollout restart statefulsets vault
 
-sleep 7s
+
 
 ################################################################## Configure Vault cluster
-#echo
-#echo "initializing vault cluster..."
-#
-#
-#while [[ ! $(kubectl get po --field-selector status.phase=Running|grep vault-0) ]] || [[ ! $(kubectl get po --field-selector status.phase=Running|grep vault-1) ]] || [[ ! $(kubectl get po --field-selector status.phase=Running|grep vault-2) ]]
-#do 
-#	echo -ne .
-#	sleep 5s
-#	
-#done
+echo
+echo "initializing vault cluster..."
 
-#kubectl exec --stdin --tty vault-0 -- vault operator init -format=yaml > vault-keys.txt
-#
-#ROOT_TOKEN=$(grep root_token vault-keys.txt |awk -F: '{print $2}'|sed 's/ //g')
-#
-#sleep 5s
-#
+kubectl rollout status statefulset vault
 
+kubectl exec --stdin --tty vault-0 -- vault operator init -format=yaml > vault-keys.txt
+
+ROOT_TOKEN=$(grep root_token vault-keys.txt |awk -F: '{print $2}'|sed 's/ //g')
+
+sleep 5s
+
+#
 #i=0
 #unseal_key_1="kubectl exec --stdin --tty vault-${i} -- vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-keys.txt |head -2|tail -1|sed 's/- //g')"
 #unseal_key_2="kubectl exec --stdin --tty vault-${i} -- vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-keys.txt |head -3|tail -1|sed 's/- //g')"
@@ -179,7 +173,7 @@ sleep 7s
 #$unseal_key_1
 #$unseal_key_2
 #$unseal_key_3
-
+#
 
 
 echo
