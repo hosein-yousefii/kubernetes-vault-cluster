@@ -1,6 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
+  namespace: vault-cluster
   name: vault-config
   labels:
     app.kubernetes.io/name: vault

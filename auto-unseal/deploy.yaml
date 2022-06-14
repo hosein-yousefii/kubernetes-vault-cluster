@@ -1,6 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  namespace: vault-cluster
   name: vault-auto-unseal
   labels:
     app.kubernetes.io/name: vault-auto-unseal

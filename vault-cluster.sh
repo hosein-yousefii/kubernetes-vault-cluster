@@ -59,13 +59,13 @@ kubectl apply -f consul/cm.yaml &> /dev/null
 kubectl apply -f consul/svc.yaml &> /dev/null
 kubectl apply -f consul/deploy.yaml &> /dev/null
 
-REPLICAS=$(kubectl get statefulsets.apps  -o custom-columns=:.spec.replicas consul|tail -1)
+REPLICAS=$(kubectl get statefulsets.apps --namespace=vault-cluster -o custom-columns=:.spec.replicas consul|tail -1)
 REPLICA=$(expr ${REPLICAS} - 1)
 
 echo
 echo "info: waiting for the Consul's pods (it might take a few minutes)."
 
-while [[ ! $(kubectl get po --field-selector status.phase=Running|grep consul-$REPLICA) ]]
+while [[ ! $(kubectl get po --namespace=vault-cluster --field-selector status.phase=Running|grep consul-$REPLICA) ]]
 do 
 	echo -ne .
 	sleep 5s
@@ -88,7 +88,7 @@ kubectl apply -f auto-unseal/deploy.yaml &> /dev/null
 echo
 echo "info: waiting for the Vault transit (auto-unseal) pod (it might take a few minutes)."
 
-while [[ ! $(kubectl get po --field-selector status.phase=Running|grep vault-auto-unseal) ]]
+while [[ ! $(kubectl get po --namespace=vault-cluster --field-selector status.phase=Running|grep vault-auto-unseal) ]]
 do
 	echo -ne .
 	sleep 2s
@@ -107,13 +107,13 @@ kubectl apply -f vault/cm.yaml &> /dev/null
 kubectl apply -f vault/svc.yaml &> /dev/null
 kubectl apply -f vault/deploy.yaml &> /dev/null
 
-REPLICAS=$(kubectl get statefulsets.apps  -o custom-columns=:.spec.replicas vault|tail -1)
+REPLICAS=$(kubectl get statefulsets.apps --namespace=vault-cluster -o custom-columns=:.spec.replicas vault|tail -1)
 REPLICA=$(expr ${REPLICAS} - 1)
 
 echo
 echo "info: waiting for the vault's pods (it might take a few minutes)."
 
-while [[ ! $(kubectl get po --field-selector status.phase=Running|grep vault-$REPLICA) ]]
+while [[ ! $(kubectl get po --namespace=vault-cluster --field-selector status.phase=Running|grep vault-$REPLICA) ]]
 do 
 	echo -ne .
 	sleep 5s
@@ -128,35 +128,35 @@ echo "info: pod's vault are in running state."
 echo
 echo "info: initializing Vault transit server..."
 
-REPLICASET_TRANSIT_SERVER_NAME=$(kubectl get deployments.apps vault-auto-unseal -o custom-columns=:.status.conditions[1].message|awk '{print $2}'|sed 's/"//g')
-TRANSIT_SERVER_NAME=$(kubectl describe replicasets.apps $REPLICASET_TRANSIT_SERVER_NAME |tail -1|awk '{print $7}')
+REPLICASET_TRANSIT_SERVER_NAME=$(kubectl get deployments.apps --namespace=vault-cluster vault-auto-unseal -o custom-columns=:.status.conditions[1].message|awk '{print $2}'|sed 's/"//g')
+TRANSIT_SERVER_NAME=$(kubectl describe replicasets.apps --namespace=vault-cluster $REPLICASET_TRANSIT_SERVER_NAME |tail -1|awk '{print $7}')
 
-kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- vault operator init -format=yaml > vault-auto-unseal-keys.txt
+kubectl exec --namespace=vault-cluster --stdin --tty $TRANSIT_SERVER_NAME -- vault operator init -format=yaml > vault-auto-unseal-keys.txt
 
 echo
 echo "info: Unsealing Vault transit server..."
 
-kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-auto-unseal-keys.txt |head -2|tail -1|sed 's/- //g') &> /dev/null
-kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-auto-unseal-keys.txt |head -3|tail -1|sed 's/- //g') &> /dev/null
-kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-auto-unseal-keys.txt |head -4|tail -1|sed 's/- //g') &> /dev/null
+kubectl exec --namespace=vault-cluster --stdin --tty $TRANSIT_SERVER_NAME -- vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-auto-unseal-keys.txt |head -2|tail -1|sed 's/- //g') &> /dev/null
+kubectl exec --namespace=vault-cluster --stdin --tty $TRANSIT_SERVER_NAME -- vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-auto-unseal-keys.txt |head -3|tail -1|sed 's/- //g') &> /dev/null
+kubectl exec --namespace=vault-cluster --stdin --tty $TRANSIT_SERVER_NAME -- vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-auto-unseal-keys.txt |head -4|tail -1|sed 's/- //g') &> /dev/null
 
 VAULT_AUTO_UNSEAL_ROOT_TOKEN=$(grep root_token vault-auto-unseal-keys.txt |awk -F: '{print $2}'|sed 's/ //g')
 
 sleep 3s
 
-kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- vault login -tls-skip-verify ${VAULT_AUTO_UNSEAL_ROOT_TOKEN} &> /dev/null
+kubectl exec --namespace=vault-cluster --stdin --tty $TRANSIT_SERVER_NAME -- vault login -tls-skip-verify ${VAULT_AUTO_UNSEAL_ROOT_TOKEN} &> /dev/null
 
-kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- vault secrets enable transit &> /dev/null
+kubectl exec --namespace=vault-cluster --stdin --tty $TRANSIT_SERVER_NAME -- vault secrets enable transit &> /dev/null
 
-kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- vault write -f transit/keys/autounseal &> /dev/null
+kubectl exec --namespace=vault-cluster --stdin --tty $TRANSIT_SERVER_NAME -- vault write -f transit/keys/autounseal &> /dev/null
 
-kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- vault policy write autounseal /vault/unseal/autounseal.hcl &> /dev/null
+kubectl exec --namespace=vault-cluster --stdin --tty $TRANSIT_SERVER_NAME -- vault policy write autounseal /vault/unseal/autounseal.hcl &> /dev/null
 
-kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- vault token create -policy="autounseal" -wrap-ttl=12000 -format=yaml > .vault-auto-unseal-token.txt &> /dev/null
+kubectl exec --namespace=vault-cluster --stdin --tty $TRANSIT_SERVER_NAME -- vault token create -policy="autounseal" -wrap-ttl=12000 -format=yaml > .vault-auto-unseal-token.txt &> /dev/null
 
 VAULT_AUTO_UNSEAL_TOKEN=$(grep token: .vault-auto-unseal-token.txt|awk '{print $2}'|tr -d '\r')
 
-kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- env VAULT_TOKEN=${VAULT_AUTO_UNSEAL_TOKEN} vault unwrap -format=yaml > .vault-unwrap-token.txt &> /dev/null
+kubectl exec --namespace=vault-cluster --stdin --tty $TRANSIT_SERVER_NAME -- env VAULT_TOKEN=${VAULT_AUTO_UNSEAL_TOKEN} vault unwrap -format=yaml > .vault-unwrap-token.txt &> /dev/null
 
 VAULT_AUTO_UNSEAL_TOKEN=$(grep client_token: .vault-unwrap-token.txt|awk '{print $2}'|tr -d '\r')
 
@@ -198,16 +198,16 @@ EOF
 
 kubectl apply -f vault/cm.yaml &> /dev/null
 
-kubectl rollout restart statefulsets vault &> /dev/null
+kubectl rollout restart statefulsets --namespace=vault-cluster vault &> /dev/null
 
 
 ################################################################## Configure Vault cluster
 echo
 echo "info: initializing vault cluster..."
 
-kubectl rollout status statefulset vault
+kubectl rollout status statefulset --namespace=vault-cluster vault
 
-kubectl exec --stdin --tty vault-0 -- vault operator init -format=yaml > vault-keys.txt
+kubectl exec --namespace=vault-cluster --stdin --tty vault-0 -- vault operator init -format=yaml > vault-keys.txt
 
 echo
 echo "info: Vault cluster is ready to use."

@@ -1,6 +1,7 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
+  namespace: vault-cluster
   name: consul
   labels:
     app.kubernetes.io/name: consul
