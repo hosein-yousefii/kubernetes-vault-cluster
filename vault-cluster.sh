@@ -9,6 +9,7 @@ then
 	echo
 	echo "The Vault cluster is already installed."
 	echo "For reinstalling please remove '.vault-auto-unseal-token.txt' and re execute the script again."
+	exit 1
 fi
 
 kubectl delete deployments.apps vault-auto-unseal &> /dev/null
@@ -143,11 +144,11 @@ kubectl exec --namespace=vault-cluster --stdin --tty $TRANSIT_SERVER_NAME -- vau
 
 kubectl exec --namespace=vault-cluster --stdin --tty $TRANSIT_SERVER_NAME -- vault policy write autounseal /vault/unseal/autounseal.hcl &> /dev/null
 
-kubectl exec --namespace=vault-cluster --stdin --tty $TRANSIT_SERVER_NAME -- vault token create -policy="autounseal" -wrap-ttl=12000 -format=yaml > .vault-auto-unseal-token.txt &> /dev/null
+kubectl exec --namespace=vault-cluster --stdin --tty $TRANSIT_SERVER_NAME -- vault token create -policy="autounseal" -wrap-ttl=12000 -format=yaml > .vault-auto-unseal-token.txt 
 
 VAULT_AUTO_UNSEAL_TOKEN=$(grep token: .vault-auto-unseal-token.txt|awk '{print $2}'|tr -d '\r')
 
-kubectl exec --namespace=vault-cluster --stdin --tty $TRANSIT_SERVER_NAME -- env VAULT_TOKEN=${VAULT_AUTO_UNSEAL_TOKEN} vault unwrap -format=yaml > .vault-unwrap-token.txt &> /dev/null
+kubectl exec --namespace=vault-cluster --stdin --tty $TRANSIT_SERVER_NAME -- env VAULT_TOKEN=${VAULT_AUTO_UNSEAL_TOKEN} vault unwrap -format=yaml > .vault-unwrap-token.txt 
 
 VAULT_AUTO_UNSEAL_TOKEN=$(grep client_token: .vault-unwrap-token.txt|awk '{print $2}'|tr -d '\r')
 
