@@ -106,51 +106,51 @@ kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- vault policy write autounseal
 kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- vault token create -policy="autounseal" -wrap-ttl=12000 -format=yaml > .vault-auto-unseal-token.txt
 
 VAULT_AUTO_UNSEAL_TOKEN=$(grep token: .vault-auto-unseal-token.txt|awk '{print $2}'|tr -d '\r')
-echo $VAULT_AUTO_UNSEAL_TOKEN
-#kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- env VAULT_TOKEN=${VAULT_AUTO_UNSEAL_TOKEN} vault unwrap -format=yaml > .vault-auto-unseal-token2.txt
 
-#VAULT_AUTO_UNSEAL_TOKEN=$(grep client_token: .vault-auto-unseal-token2.txt|awk '{print $2}'|tr -d '\r')
+kubectl exec --stdin --tty $TRANSIT_SERVER_NAME -- env VAULT_TOKEN=${VAULT_AUTO_UNSEAL_TOKEN} vault unwrap -format=yaml > .vault-auto-unseal-token2.txt
+
+VAULT_AUTO_UNSEAL_TOKEN=$(grep client_token: .vault-auto-unseal-token2.txt|awk '{print $2}'|tr -d '\r')
 
 ################################################################### CONFIGURE VAULT CLUSTER
-#echo
-#echo "Configuring Vault cluster..."
-#
-#tee vault/cm.yaml << EOF
-#apiVersion: v1
-#kind: ConfigMap
-#metadata:
-#  name: vault-config
-#  labels:
-#    app.kubernetes.io/name: vault
-#    app.kubernetes.io/creator: hossein-yousefi
-#    app.kubernetes.io/stack: vault-cluster
-#data:
-#  config.hcl: |
-#    listener "tcp" {
-#      tls_disable = 1
-#      address          = "0.0.0.0:8200"
-#      cluster_address  = "0.0.0.0:8201"	  
-#     }
-#    storage "consul" {
-#      address = "consul:8500"
-#      path    = "vault/"
-#     }
-#    disable_mlock = true
-#    seal "transit" {
-#      address = "http://vault-auto-unseal:8200"
-#      token = "${VAULT_AUTO_UNSEAL_TOKEN}"
-#      disable_renewal = "false"
-#      key_name = "auto-unseal"
-#      mount_path = "transit/"
-#     }
-#
-#EOF
-#
-#kubectl apply -f vault/cm.yaml
-#
-#kubectl rollout restart statefulsets vault
-#
-#sleep 7s
+echo
+echo "Configuring Vault cluster..."
+
+tee vault/cm.yaml << EOF
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vault-config
+  labels:
+    app.kubernetes.io/name: vault
+    app.kubernetes.io/creator: hossein-yousefi
+    app.kubernetes.io/stack: vault-cluster
+data:
+  config.hcl: |
+    listener "tcp" {
+      tls_disable = 1
+      address          = "0.0.0.0:8200"
+      cluster_address  = "0.0.0.0:8201"	  
+     }
+    storage "consul" {
+      address = "consul:8500"
+      path    = "vault/"
+     }
+    disable_mlock = true
+    seal "transit" {
+      address = "http://vault-auto-unseal:8200"
+      token = "${VAULT_AUTO_UNSEAL_TOKEN}"
+      disable_renewal = "false"
+      key_name = "autounseal"
+      mount_path = "transit/"
+     }
+
+EOF
+
+kubectl apply -f vault/cm.yaml
+
+kubectl rollout restart statefulsets vault
+
+sleep 7s
 
 ################################################################## Configure Vault cluster
 #echo
@@ -170,8 +170,7 @@ echo $VAULT_AUTO_UNSEAL_TOKEN
 #
 #sleep 5s
 #
-##for i in `seq 0 $REPLICA`
-##do
+
 #i=0
 #unseal_key_1="kubectl exec --stdin --tty vault-${i} -- vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-keys.txt |head -2|tail -1|sed 's/- //g')"
 #unseal_key_2="kubectl exec --stdin --tty vault-${i} -- vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-keys.txt |head -3|tail -1|sed 's/- //g')"
@@ -180,7 +179,7 @@ echo $VAULT_AUTO_UNSEAL_TOKEN
 #$unseal_key_1
 #$unseal_key_2
 #$unseal_key_3
-##done
+
 
 
 echo
