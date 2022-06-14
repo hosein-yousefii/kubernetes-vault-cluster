@@ -55,6 +55,7 @@ kubectl delete -f auto-unseal/svc.yaml &> /dev/null
 echo
 echo "info: Deploying Consul cluster ..."
 
+kubectl create namespace vault-cluster &> /dev/null
 kubectl apply -f consul/cm.yaml &> /dev/null
 kubectl apply -f consul/svc.yaml &> /dev/null
 kubectl apply -f consul/deploy.yaml &> /dev/null
@@ -71,6 +72,7 @@ do
 	
 done
 
+echo
 echo "info: Consul cluster are in running state."
 
 ################################################################## DEPLOY VAULT TRANSIT FOR AUTO UNSEALING
@@ -91,6 +93,7 @@ do
 	
 done
 
+echo
 echo "info: Vault transit server successfuly deployed."
 
 
@@ -114,6 +117,7 @@ do
 	
 done
 
+echo
 echo "info: pod's vault are in running state."
 
 
@@ -190,7 +194,7 @@ EOF
 
 kubectl apply -f vault/cm.yaml &> /dev/null
 
-kubectl rollout restart statefulsets --namespace=vault-cluster vault &> /dev/null
+kubectl rollout restart statefulsets --namespace=vault-cluster vault 
 
 
 ################################################################## Configure Vault cluster
