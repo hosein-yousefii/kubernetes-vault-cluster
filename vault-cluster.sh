@@ -4,6 +4,52 @@ echo """
 # written by Hosein Yousefi <yousefi.hosein.o@gmail.com>
 """
 
+if [[ -e .vault-auto-unseal-token.txt ]] 
+then
+	echo
+	echo "The Vault cluster is already installed."
+	echo "For reinstalling please remove '.vault-auto-unseal-token.txt' and re execute the script again."
+fi
+
+kubectl delete deployments.apps vault-auto-unseal &> /dev/null
+
+kubectl delete -f auto-unseal/cm.yaml &> /dev/null
+kubectl delete -f consul/deploy.yaml &> /dev/null
+kubectl delete -f vault/deploy.yaml &> /dev/null
+
+kubectl delete pvc vault-data-vault-0 &> /dev/null
+kubectl delete pvc vault-data-vault-1 &> /dev/null
+kubectl delete pvc vault-data-vault-2 &> /dev/null
+kubectl delete pvc vault-au-pv-claim &> /dev/null
+kubectl delete pvc consul-data-consul-0 &> /dev/null
+kubectl delete pvc consul-data-consul-1 &> /dev/null
+kubectl delete pvc consul-data-consul-2 &> /dev/null
+
+for i in $(kubectl get pv|grep vault-data|awk '{print $1}')
+do
+
+	kubectl delete pv $i &> /dev/null
+done
+
+for i in $(kubectl get pv|grep vault-consul|awk '{print $1}')
+do
+
+	kubectl delete pv $i &> /dev/null
+done
+
+for i in $(kubectl get pv|grep vault-au|awk '{print $1}')
+do
+
+	kubectl delete pv $i &> /dev/null
+done
+
+kubectl delete configMaps vault-config &> /dev/null
+
+kubectl delete -f vault/svc.yaml &> /dev/null
+kubectl delete -f consul/svc.yaml &> /dev/null
+kubectl delete -f auto-unseal/svc.yaml &> /dev/null
+
+
 ################################################################## DEPLOY CONSUL CLUSTER
 echo
 echo "info: Deploying Consul cluster ..."
