@@ -53,7 +53,6 @@ kubectl delete -f auto-unseal/svc.yaml &> /dev/null
 ################################################################## DEPLOY CONSUL CLUSTER
 echo
 echo "info: Deploying Consul cluster ..."
-echo
 
 kubectl apply -f consul/cm.yaml &> /dev/null
 kubectl apply -f consul/svc.yaml &> /dev/null
@@ -62,7 +61,6 @@ kubectl apply -f consul/deploy.yaml &> /dev/null
 REPLICAS=$(kubectl get statefulsets.apps --namespace=vault-cluster -o custom-columns=:.spec.replicas consul|tail -1)
 REPLICA=$(expr ${REPLICAS} - 1)
 
-echo
 echo "info: waiting for the Consul's pods (it might take a few minutes)."
 
 while [[ ! $(kubectl get po --namespace=vault-cluster --field-selector status.phase=Running|grep consul-$REPLICA) ]]
@@ -72,20 +70,17 @@ do
 	
 done
 
-echo
 echo "info: Consul cluster are in running state."
 
 ################################################################## DEPLOY VAULT TRANSIT FOR AUTO UNSEALING
 echo "##########################################"
 echo "info: Deploying Vault transit server ..."
-echo
 
 kubectl apply -f auto-unseal/pvc.yaml &> /dev/null
 kubectl apply -f auto-unseal/cm.yaml &> /dev/null
 kubectl apply -f auto-unseal/svc.yaml &> /dev/null
 kubectl apply -f auto-unseal/deploy.yaml &> /dev/null
 
-echo
 echo "info: waiting for the Vault transit (auto-unseal) pod (it might take a few minutes)."
 
 while [[ ! $(kubectl get po --namespace=vault-cluster --field-selector status.phase=Running|grep vault-auto-unseal) ]]
@@ -95,7 +90,6 @@ do
 	
 done
 
-echo
 echo "info: Vault transit server successfuly deployed."
 
 
@@ -110,7 +104,6 @@ kubectl apply -f vault/deploy.yaml &> /dev/null
 REPLICAS=$(kubectl get statefulsets.apps --namespace=vault-cluster -o custom-columns=:.spec.replicas vault|tail -1)
 REPLICA=$(expr ${REPLICAS} - 1)
 
-echo
 echo "info: waiting for the vault's pods (it might take a few minutes)."
 
 while [[ ! $(kubectl get po --namespace=vault-cluster --field-selector status.phase=Running|grep vault-$REPLICA) ]]
@@ -120,7 +113,6 @@ do
 	
 done
 
-echo
 echo "info: pod's vault are in running state."
 
 
@@ -133,7 +125,6 @@ TRANSIT_SERVER_NAME=$(kubectl describe replicasets.apps --namespace=vault-cluste
 
 kubectl exec --namespace=vault-cluster --stdin --tty $TRANSIT_SERVER_NAME -- vault operator init -format=yaml > vault-auto-unseal-keys.txt
 
-echo
 echo "info: Unsealing Vault transit server..."
 
 kubectl exec --namespace=vault-cluster --stdin --tty $TRANSIT_SERVER_NAME -- vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-auto-unseal-keys.txt |head -2|tail -1|sed 's/- //g') &> /dev/null
