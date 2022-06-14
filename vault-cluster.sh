@@ -76,7 +76,7 @@ echo
 echo "info: Consul cluster are in running state."
 
 ################################################################## DEPLOY VAULT TRANSIT FOR AUTO UNSEALING
-echo
+echo "##########################################"
 echo "info: Deploying Vault transit server ..."
 echo
 
@@ -100,7 +100,7 @@ echo "info: Vault transit server successfuly deployed."
 
 
 ################################################################## DEPLOY VAULT CLUSTER
-echo
+echo "##########################################"
 echo "info: Deploying Vault cluster..."
 
 kubectl apply -f vault/cm.yaml &> /dev/null
@@ -125,7 +125,7 @@ echo "info: pod's vault are in running state."
 
 
 ################################################################## CONFIGURE VAULT TRANSIT SERVER
-echo
+echo "##########################################"
 echo "info: initializing Vault transit server..."
 
 REPLICASET_TRANSIT_SERVER_NAME=$(kubectl get deployments.apps --namespace=vault-cluster vault-auto-unseal -o custom-columns=:.status.conditions[1].message|awk '{print $2}'|sed 's/"//g')
@@ -162,7 +162,7 @@ VAULT_AUTO_UNSEAL_TOKEN=$(grep client_token: .vault-unwrap-token.txt|awk '{print
 
 
 ################################################################### CONFIGURE VAULT CLUSTER
-echo
+echo "##########################################"
 echo "info: Configuring Vault cluster..."
 
 tee vault/cm.yaml << EOF
@@ -202,7 +202,7 @@ kubectl rollout restart statefulsets --namespace=vault-cluster vault &> /dev/nul
 
 
 ################################################################## Configure Vault cluster
-echo
+echo "##########################################"
 echo "info: initializing vault cluster..."
 
 kubectl rollout status statefulset --namespace=vault-cluster vault
