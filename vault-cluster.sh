@@ -33,12 +33,12 @@ REPLICA=$(expr ${REPLICAS} - 1)
 
 echo "info: waiting for the Consul's pods (it might take a few minutes)."
 
-while [[ ! $(kubectl get po --namespace=vault-cluster --field-selector status.phase=Running|grep consul-$REPLICA &> /dev/null) ]]
+while [[ ! $(kubectl get po --namespace=vault-cluster --field-selector status.phase=Running|grep consul-$REPLICA ) ]]
 do 
 	echo -ne .
 	sleep 5s
 	
-done
+done 2> /dev/null
 
 echo
 echo "info: Consul cluster are in running state."
