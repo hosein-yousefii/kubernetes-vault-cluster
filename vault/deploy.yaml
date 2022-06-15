@@ -93,7 +93,52 @@ spec:
 
         - name: vault-data
           mountPath: /vault/data/
+          
+      - name: consul-client
+        image: consul:latest
+        ports:
+          - name: http
+            containerPort: 8500
 
+          - name: https
+            containerPort: 8501
+
+          - name: serflan-tcp
+            containerPort: 8301
+            protocol: "TCP"
+
+          - name: serflan-udp
+            containerPort: 8301
+            protocol: "UDP"
+
+          - name: serfwan-tcp
+            containerPort: 8302
+            protocol: "TCP"
+
+          - name: serfwan-udp
+            containerPort: 8302
+            protocol: "UDP"
+
+          - name: server
+            containerPort: 8300
+
+          - name: dns-tcp
+            containerPort: 8600
+            protocol: "TCP"
+
+          - name: dns-udp
+            containerPort: 8600
+            protocol: "UDP"
+
+        args:
+          - "agent"
+          - "-config-file=/consul/myconf/consul.json"
+
+        volumeMounts:
+        - name: consul-client-config
+          mountPath: /consul/myconf/
+
+        
   volumeClaimTemplates:
   - metadata:
       name: vault-data

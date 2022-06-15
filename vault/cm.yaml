@@ -19,3 +19,28 @@ data:
       path    = "vault/"
     }
     disable_mlock = true
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: vault-cluster
+  name: consul-client-config
+  labels:
+    app.kubernetes.io/name: vault
+    app.kubernetes.io/creator: hossein-yousefi
+    app.kubernetes.io/stack: vault-cluster
+data:
+  consul.json: |
+    {
+      "server": false,
+      "datacenter": "dc1",
+      "data_dir": "/consul/data/",
+      "bind_addr": "0.0.0.0",
+      "client_addr": "0.0.0.0",
+      "retry_join": [consul],
+      "log_level": "DEBUG",
+      "enable_syslog": true,
+      "acl_enforce_version_8": false
+    }  
