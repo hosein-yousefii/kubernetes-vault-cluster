@@ -37,6 +37,9 @@ spec:
         - name: vault-config
           configMap:
             name: vault-config
+        - name: consul-client-config
+          configMap:
+            name: consul-client-config            
 
       terminationGracePeriodSeconds: 10
       containers:
