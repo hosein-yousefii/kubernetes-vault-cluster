@@ -41,6 +41,5 @@ data:
       "client_addr": "0.0.0.0",
       "retry_join": ["consul"],
       "log_level": "DEBUG",
-      "enable_syslog": true,
       "acl_enforce_version_8": false
    }  
