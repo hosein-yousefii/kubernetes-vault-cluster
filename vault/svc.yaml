@@ -23,6 +23,48 @@ spec:
           protocol: "TCP"
           port: 8202
           targetPort: 8202
+
+        - name: consul-http
+          port: 8500
+          targetPort: 8500
+
+        - name: consul-https
+          port: 8501
+          targetPort: 8501
+
+        - name: consul-serflan-tcp
+          port: 8301
+          targetPort: 8301
+          protocol: "TCP"
+
+        - name: consul-serflan-udp
+          port: 8301
+          targetPort: 8301
+          protocol: "UDP"
+
+        - name: consul-serfwan-tcp
+          containerPort: 8302
+          protocol: "TCP"
+
+        - name: consul-serfwan-udp
+          port: 8302
+          targetPort: 8302
+          protocol: "UDP"
+
+        - name: consul-server
+          port: 8300
+          targetPort: 8300
+
+        - name: consul-dns-tcp
+          port: 8600
+          targetPort: 8600
+          protocol: "TCP"
+
+        - name: consul-dns-udp
+          port: 8600
+          targetPort: 8600
+          protocol: "UDP"
+            
   selector:
     app.kubernetes.io/name: vault
     app.kubernetes.io/creator: hossein-yousefi
