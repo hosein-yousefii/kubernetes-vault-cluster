@@ -33,14 +33,6 @@ spec:
                   - vault
             topologyKey: "kubernetes.io/hostname"
 
-      volumes:
-        - name: vault-config
-          configMap:
-            name: vault-config
-        - name: consul-client-config
-          configMap:
-            name: consul-client-config            
-
       terminationGracePeriodSeconds: 10
       containers:
       - name: vault
@@ -141,7 +133,15 @@ spec:
         - name: consul-client-config
           mountPath: /consul/myconf/
 
-        
+      volumes:
+        - name: vault-config
+          configMap:
+            name: vault-config
+            
+        - name: consul-client-config
+          configMap:
+            name: consul-client-config   
+            
   volumeClaimTemplates:
   - metadata:
       name: vault-data
