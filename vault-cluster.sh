@@ -33,12 +33,14 @@ REPLICA=$(expr ${REPLICAS} - 1)
 
 echo "info: waiting for the Consul's pods (it might take a few minutes)."
 
+sleep 1m
+
 while [[ ! $(kubectl get po --namespace=vault-cluster --field-selector status.phase=Running|grep consul-$REPLICA ) ]]
 do 
 	echo -ne .
 	sleep 5s
 	
-done 2> /dev/null
+done
 
 echo
 echo "info: Consul cluster are in running state."
@@ -157,7 +159,30 @@ data:
       key_name = "autounseal"
       mount_path = "transit/"
      }
+	 
+---
 
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: vault-cluster
+  name: consul-client-config
+  labels:
+    app.kubernetes.io/name: vault
+    app.kubernetes.io/creator: hossein-yousefi
+    app.kubernetes.io/stack: vault-cluster
+data:
+  consul.json: |
+   {
+      "server": false,
+      "datacenter": "dc1",
+      "data_dir": "/consul/data/",
+      "bind_addr": "0.0.0.0",
+      "client_addr": "0.0.0.0",
+      "retry_join": ["consul"],
+      "log_level": "DEBUG",
+      "acl_enforce_version_8": false
+   } 
 EOF
 
 kubectl apply -f vault/cm.yaml &> /dev/null
@@ -172,6 +197,10 @@ echo "info: initializing vault cluster..."
 kubectl rollout status statefulset --namespace=vault-cluster vault
 
 kubectl exec --namespace=vault-cluster --stdin --tty vault-0 -- vault operator init -format=yaml > vault-keys.txt
+
+kubectl exec --namespace=vault-cluster --stdin --tty vault-0 -- vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-keys.txt |head -2|tail -1|sed 's/- //g') &> /dev/null
+kubectl exec --namespace=vault-cluster --stdin --tty vault-0 -- vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-keys.txt |head -3|tail -1|sed 's/- //g') &> /dev/null
+kubectl exec --namespace=vault-cluster --stdin --tty vault-0 -- vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-keys.txt |head -4|tail -1|sed 's/- //g') &> /dev/null
 
 echo
 echo "info: Vault cluster is ready to use."
