@@ -160,6 +160,7 @@ data:
       disable_renewal = "false"
       key_name = "autounseal"
       mount_path = "transit/"
+      tls_skip_verify = "true"
      }
 
 ---
@@ -181,7 +182,7 @@ data:
       "data_dir": "/consul/data/",
       "bind_addr": "0.0.0.0",
       "client_addr": "0.0.0.0",
-      "retry_join": ["consul"],
+      "retry_join": ["vault"],
       "log_level": "DEBUG",
       "acl_enforce_version_8": false
    } 
@@ -200,9 +201,9 @@ kubectl rollout status statefulset --namespace=vault-cluster vault
 
 kubectl exec --namespace=vault-cluster --stdin --tty vault-0 -c vault -- vault operator init -format=yaml > vault-keys.txt
 
-kubectl exec --namespace=vault-cluster --stdin --tty vault-0 -c vault -- vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-keys.txt |head -2|tail -1|sed 's/- //g') &> /dev/null
-kubectl exec --namespace=vault-cluster --stdin --tty vault-0 -c vault -- vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-keys.txt |head -3|tail -1|sed 's/- //g') &> /dev/null
-kubectl exec --namespace=vault-cluster --stdin --tty vault-0 -c vault -- vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-keys.txt |head -4|tail -1|sed 's/- //g') &> /dev/null
+kubectl exec --namespace=vault-cluster --stdin --tty vault-1 -c vault -- vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-keys.txt |head -2|tail -1|sed 's/- //g') &> /dev/null
+kubectl exec --namespace=vault-cluster --stdin --tty vault-1 -c vault -- vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-keys.txt |head -3|tail -1|sed 's/- //g') &> /dev/null
+kubectl exec --namespace=vault-cluster --stdin --tty vault-1 -c vault -- vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-keys.txt |head -4|tail -1|sed 's/- //g') &> /dev/null
 
 echo
 echo "info: Vault cluster is ready to use."

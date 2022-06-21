@@ -39,7 +39,7 @@ data:
       "data_dir": "/consul/data/",
       "bind_addr": "0.0.0.0",
       "client_addr": "0.0.0.0",
-      "retry_join": ["consul"],
+      "retry_join": ["vault"],
       "log_level": "DEBUG",
       "acl_enforce_version_8": false
-   }  
+   }
