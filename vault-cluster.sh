@@ -138,6 +138,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: vault-config
+  namespace: vault-cluster
   labels:
     app.kubernetes.io/name: vault
     app.kubernetes.io/creator: hossein-yousefi
