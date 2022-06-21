@@ -112,6 +112,8 @@ sleep 3s
 
 kubectl exec --namespace=vault-cluster --stdin --tty $TRANSIT_SERVER_NAME -- vault login -tls-skip-verify ${VAULT_AUTO_UNSEAL_ROOT_TOKEN} &> /dev/null
 
+kubectl exec --namespace=vault-cluster --stdin --tty $TRANSIT_SERVER_NAME -- vault audit enable file file_path=/vault/logs/audit.log &> /dev/null
+
 kubectl exec --namespace=vault-cluster --stdin --tty $TRANSIT_SERVER_NAME -- vault secrets enable transit &> /dev/null
 
 kubectl exec --namespace=vault-cluster --stdin --tty $TRANSIT_SERVER_NAME -- vault write -f transit/keys/autounseal &> /dev/null
