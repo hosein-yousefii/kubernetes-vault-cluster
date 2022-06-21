@@ -9,7 +9,25 @@ then
 	echo
 	echo "The Vault cluster is already installed."
 	echo "For reinstalling please remove '.vault-auto-unseal-token.txt' and re execute the script again."
-	exit 1
+	        echo
+        read -p "Do you want to unseal Transit server? (y/n)" answer
+        if [[ $answer == y ]]
+        then
+                REPLICASET_TRANSIT_SERVER_NAME=$(kubectl get deployments.apps --namespace=vault-cluster \
+                        vault-auto-unseal -o custom-columns=:.status.conditions[1].message|awk '{print $2}'|sed 's/"//g')
+                TRANSIT_SERVER_NAME=$(kubectl describe replicasets.apps --namespace=vault-cluster $REPLICASET_TRANSIT_SERVER_NAME |tail -1|awk '{print $7}')
+
+                kubectl exec --namespace=vault-cluster --stdin --tty $TRANSIT_SERVER_NAME -- \
+                        vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-auto-unseal-keys.txt |head -2|tail -1|sed 's/- //g') &> /dev/null
+                kubectl exec --namespace=vault-cluster --stdin --tty $TRANSIT_SERVER_NAME -- \
+                        vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-auto-unseal-keys.txt |head -3|tail -1|sed 's/- //g') &> /dev/null
+                kubectl exec --namespace=vault-cluster --stdin --tty $TRANSIT_SERVER_NAME -- \
+                        vault operator unseal -tls-skip-verify $(grep -A 5 unseal_keys_b64 vault-auto-unseal-keys.txt |head -4|tail -1|sed 's/- //g') &> /dev/null
+                exit 0
+        else
+                exit 1
+        fi
+
 fi
 
 echo "info: cleaning the system"
