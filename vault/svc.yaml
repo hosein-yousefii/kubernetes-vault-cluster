@@ -43,7 +43,7 @@ spec:
           protocol: "UDP"
 
         - name: consul-serfwan-tcp
-          containerPort: 8302
+          targetPort: 8302
           protocol: "TCP"
 
         - name: consul-serfwan-udp
