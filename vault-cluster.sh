@@ -151,7 +151,7 @@ VAULT_AUTO_UNSEAL_TOKEN=$(grep client_token: .vault-unwrap-token.txt|awk '{print
 echo "##########################################"
 echo "info: Configuring Vault cluster..."
 
-tee vault/cm.yaml << EOF
+tee vault/cm-updated.yaml << EOF
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -207,7 +207,7 @@ data:
    } 
 EOF
 
-kubectl apply -f vault/cm.yaml &> /dev/null
+kubectl apply -f vault/cm-updated.yaml &> /dev/null
 
 kubectl rollout restart statefulsets --namespace=vault-cluster vault 
 
