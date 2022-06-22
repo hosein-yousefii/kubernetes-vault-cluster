@@ -40,6 +40,8 @@ Then run the script:
 
 This script will deploy consul cluster first, then vault. Also, init and unseal vault and store keys to the current directory in "vault-cluster-keys.txt".
 
+In case of facing sealed "vault-auto-unseal" pod, you are able to run the script again, and it prompts you to ask if you want to unseal it.
+
 !!Attention!!
 
 I've used GlusterFS as storage class in kubernetes, you should change it to what you are using. The configuration is in "vault/deploy.yaml" and "consul/deploy.yaml" last section which is "volumeClaimTemplates:" so, change "storageClassName: "glusterfs"" to your cluster storage class.
